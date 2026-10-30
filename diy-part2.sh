@@ -10,11 +10,37 @@
 # See /LICENSE for more information.
 #
 
-git clone https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
-sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
-sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci-light/Makefile 2>/dev/null || true
+# 1. 修复 mac80211 与 6.12 内核的 netns_local 兼容问题
+# ============================================================
+NETNS_PATCH_URL="https://git.openwrt.org/?p=openwrt/openwrt.git;a=blob_plain;f=package/kernel/mac80211/patches/build/210-wireless_netns_local_backport.patch;hb=HEAD"
 
-# Modify default IP
+wget -q "$NETNS_PATCH_URL" -O /tmp/210-wireless_netns_local_backport.patch 2>/dev/null
+
+if [ -s /tmp/210-wireless_netns_local_backport.patch ]; then
+    mkdir -p package/kernel/mac80211/patches/build/
+    cp /tmp/210-wireless_netns_local_backport.patch package/kernel/mac80211/patches/build/
+    echo ">>> netns_local patch applied."
+else
+    echo ">>> WARNING: netns_local patch download failed."
+fi
+
+# ============================================================
+# 2. 构建官方最新版 Argon（遵循源码构建指南）
+# ============================================================
+# 移除 feeds 里的旧版，避免冲突
+rm -rf feeds/luci/themes/luci-theme-argon
+
+# 拉取最新官方源码
+git clone https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
+rm -rf package/luci-theme-argon/.git
+
+# 【注意】不要 clone 旧的 luci-app-argon-config 仓库！
+# 新版主题已内置，旧插件会导致文件覆盖报错。
+# 语言包(luci-i18n-argon-config-*)依然可用，后续可在 .config 中选中。
+
+# ============================================================
+# 3. 修改默认 IP（保留你原有的设置）
+# ============================================================
 sed -i 's/192.168.1.1/192.168.6.1/g' package/base-files/files/bin/config_generate
 
 # Modify default theme

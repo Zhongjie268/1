@@ -10,23 +10,6 @@
 # See /LICENSE for more information.
 #
 
-# 1. 修复 mac80211 与 6.12 内核的 netns_local 兼容问题
-# ============================================================
-NETNS_PATCH_URL="https://git.openwrt.org/?p=openwrt/openwrt.git;a=blob_plain;f=package/kernel/mac80211/patches/build/210-wireless_netns_local_backport.patch;hb=HEAD"
-
-wget -q "$NETNS_PATCH_URL" -O /tmp/210-wireless_netns_local_backport.patch 2>/dev/null
-
-if [ -s /tmp/210-wireless_netns_local_backport.patch ]; then
-    mkdir -p package/kernel/mac80211/patches/build/
-    cp /tmp/210-wireless_netns_local_backport.patch package/kernel/mac80211/patches/build/
-    echo ">>> netns_local patch applied."
-else
-    echo ">>> WARNING: netns_local patch download failed."
-fi
-
-# ============================================================
-# 2. 构建官方最新版 Argon（遵循源码构建指南）
-# ============================================================
 # 移除 feeds 里的旧版，避免冲突
 rm -rf feeds/luci/themes/luci-theme-argon
 
@@ -39,7 +22,7 @@ rm -rf package/luci-theme-argon/.git
 # 语言包(luci-i18n-argon-config-*)依然可用，后续可在 .config 中选中。
 
 # ============================================================
-# 3. 修改默认 IP（保留你原有的设置）
+修改默认 IP（保留你原有的设置）
 # ============================================================
 sed -i 's/192.168.1.1/192.168.6.1/g' package/base-files/files/bin/config_generate
 
